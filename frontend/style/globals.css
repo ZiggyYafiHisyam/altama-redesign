@@ -1,0 +1,60 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap');
+@import "tailwindcss";
+
+@theme{
+    
+    /* color */
+    --color-primary : #353185;
+    --color-border : #403BA0;
+    --color-darkBlue : #29266E;
+    --color-abu : #E4E4E4;
+    --color-grey : #414141;
+    
+
+    /* font */
+    --font-inter : "Inter";
+    --font-header : "League Spartan";
+
+    --default-font-family: var(--font-inter);
+
+}
+
+.milestone-track {
+    scrollbar-width: none;
+}
+
+.milestone-track::-webkit-scrollbar {
+    display: none;
+}
+
+.alva-breathe {
+    transform-origin: bottom right;
+    animation: alva-breathe 3s ease-in-out infinite;
+}
+
+@keyframes alva-breathe {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.06);
+    }
+}
+
+@media (max-width: 767px) {
+    .web-gallery-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        grid-template-areas:
+            "a b"
+            "a b"
+            "d d"
+            "f g"
+            "e e"
+            "c c" !important;
+        grid-template-rows: repeat(6, 140px) !important;
+    }
+}
