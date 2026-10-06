@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import Button from '../../ui/Button/Button'
 
 const jobs = [
@@ -20,6 +21,8 @@ const jobs = [
 ]
 
 const Grow = () => {
+    const navigate = useNavigate()
+
     return (
         <section
             className="relative w-full overflow-hidden px-6 py-8 md:px-12"
@@ -66,7 +69,10 @@ const Grow = () => {
                             </p>
 
                             <div className="mt-7">
-                                <Button className="h-10 w-40 rounded-[999px] text-[14px] font-bold md:h-13 md:w-55 md:text-[20px]">
+                                <Button
+                                    className="h-10 w-40 rounded-[999px] text-[14px] font-bold md:h-13 md:w-55 md:text-[20px]"
+                                    onClick={() => navigate('/grow-with')}
+                                >
                                     Apply Now
                                 </Button>
                             </div>

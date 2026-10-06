@@ -1,6 +1,7 @@
-import { createBrowserRouter } from "react-router-dom"
+import { createBrowserRouter, Navigate } from "react-router-dom"
 import { logPageView } from "../lib/api"
 import Home from "../pages/Home"
+import BrandDetail from "../pages/BrandDetail"
 import VisiMisi from "../pages/VisiMisi"
 import Award from "../pages/Award"
 import Board from "../pages/Board"
@@ -20,6 +21,20 @@ const router = createBrowserRouter([
     {
         path: '/visi-misi',
         element: <VisiMisi />,
+    },
+    // Brand pages. Listed one by one rather than as /brand/:slug so that only
+    // the three real brands resolve; see lib/brands.js for their content.
+    {
+        path: '/brand/tekiro',
+        element: <BrandDetail slug="tekiro" />,
+    },
+    {
+        path: '/brand/rexco',
+        element: <BrandDetail slug="rexco" />,
+    },
+    {
+        path: '/brand/ryu',
+        element: <BrandDetail slug="ryu" />,
     },
     {
         path: '/award',
@@ -56,6 +71,11 @@ const router = createBrowserRouter([
     {
         path: '/detail-news',
         element: <DetailNews />,
+    },
+    // Anything unrecognised goes home instead of rendering a blank screen.
+    {
+        path: '*',
+        element: <Navigate to="/" replace />,
     },
 ])
 

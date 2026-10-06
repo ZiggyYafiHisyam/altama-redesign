@@ -12,31 +12,31 @@ import logo from "../../assets/navbar/Logo.svg";
 import arrow from "../../assets/navbar/PanahSubMenu.svg";
 
 // Every real page route lives in one of these four menus (or the Contact Us
-// link), so the navbar alone can reach the whole site map.
+// link), so the navbar alone can reach the whole site map. The top-level
+// Profile/Brand/Media/Career links scroll to their home-page section; these
+// are the pages underneath them.
 const profileMenuItems = [
-    { label: "Company Profile", path: "/#profile" },
-    { label: "Visi & Misi", path: "/visi-misi" },
-    { label: "Board", path: "/board" },
+    { label: "Company Overview", path: "/visi-misi" },
+    { label: "Awards & Certification", path: "/award" },
+    { label: "Board of Directors", path: "/board" },
+    { label: "Gallery", path: "/gallery" },
 ];
 
 const brandMenuItems = [
-    { label: "Tekiro", path: "/#tekiro" },
-    { label: "Rexco", path: "/#rexco" },
-    { label: "Ryu", path: "/#ryu" },
-    { label: "Award", path: "/award" },
+    { label: "Tekiro", path: "/brand/tekiro" },
+    { label: "Rexco", path: "/brand/rexco" },
+    { label: "Ryu", path: "/brand/ryu" },
 ];
 
 const mediaMenuItems = [
-    { label: "Media Center", path: "/#media-center" },
-    { label: "IG Gallery", path: "/gallery" },
+    { label: "Instagram Gallery", path: "/gallery" },
     { label: "Web Gallery", path: "/web-gallery" },
-    { label: "Detail News", path: "/detail-news" },
+    { label: "News", path: "/detail-news" },
 ];
 
 const careerMenuItems = [
-    { label: "Apply Job", path: "/grow-with" },
     { label: "Life at Altama", path: "/life-at" },
-    { label: "Testimoni", path: "/life-at" },
+    { label: "Apply Jobs", path: "/grow-with" },
 ];
 
 const Navbar = () => {
@@ -179,7 +179,7 @@ const Navbar = () => {
                     {openMenu === "brand" && (
                         <div
                             id="brand-menu"
-                            className="absolute left-1/2 top-full z-30 mt-3 h-[min(14rem,55vw)] w-[min(7.625rem,calc(100vw-2rem))] -translate-x-1/2"
+                            className="absolute left-1/2 top-full z-30 mt-3 h-[min(10.5rem,42vw)] w-[min(7.625rem,calc(100vw-2rem))] -translate-x-1/2"
                             role="menu"
                         >
                             <img
@@ -281,7 +281,7 @@ const Navbar = () => {
                     {openMenu === "career" && (
                         <div
                             id="career-menu"
-                            className="absolute left-1/2 top-full z-30 mt-3 h-[min(11.625rem,55vw)] w-[min(11.25rem,calc(100vw-2rem))] -translate-x-1/2"
+                            className="absolute left-1/2 top-full z-30 mt-3 h-[min(7.75rem,37vw)] w-[min(11.25rem,calc(100vw-2rem))] -translate-x-1/2"
                             role="menu"
                         >
                             <img

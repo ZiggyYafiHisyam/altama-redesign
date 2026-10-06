@@ -18,37 +18,40 @@ const socialLinks = [
     { label: "Instagram", image: ig },
 ];
 
+// Mirrors the navbar's site map so the footer and the top nav never disagree
+// about where a page lives.
 const footerColumns = [
     {
-        title: "Company",
+        title: "Profile",
         links: [
-            { label: "About", path: "/#profile" },
-            { label: "Career", path: "/grow-with" },
+            { label: "Company Overview", path: "/visi-misi" },
+            { label: "Awards & Certification", path: "/award" },
+            { label: "Board of Directors", path: "/board" },
+            { label: "Gallery", path: "/gallery" },
+        ],
+    },
+    {
+        title: "Brand",
+        links: [
+            { label: "Tekiro", path: "/brand/tekiro" },
+            { label: "Rexco", path: "/brand/rexco" },
+            { label: "Ryu", path: "/brand/ryu" },
+        ],
+    },
+    {
+        title: "Media Center",
+        links: [
+            { label: "Instagram Gallery", path: "/gallery" },
+            { label: "Web Gallery", path: "/web-gallery" },
             { label: "News", path: "/detail-news" },
         ],
     },
     {
-        title: "Product",
+        title: "Career",
         links: [
-            { label: "Tekiro", path: "/#brand" },
-            { label: "Rexco", path: "/#brand" },
-            { label: "Ryu", path: "/#brand" },
-        ],
-    },
-    {
-        title: "Contact Us",
-        links: [
-            { label: "Location", path: "/contact-us" },
-            { label: "Help", path: "/contact-us" },
-            { label: "Alva", path: "/contact-us" },
-        ],
-    },
-    {
-        title: "Company Overview",
-        links: [
-            { label: "Media Center", path: "/gallery" },
-            { label: "Gallery", path: "/gallery" },
-            { label: "Career", path: "/grow-with" },
+            { label: "Life at Altama", path: "/life-at" },
+            { label: "Apply Jobs", path: "/grow-with" },
+            { label: "Contact Us", path: "/contact-us" },
         ],
     },
 ];
