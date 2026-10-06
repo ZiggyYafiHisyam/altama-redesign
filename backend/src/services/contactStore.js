@@ -1,9 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
-import { fileURLToPath } from "node:url"
+import { DATA_DIR } from "./dataDir.js"
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const DATA_DIR = process.env.DATA_DIR ?? path.join(__dirname, "..", "..", "data")
 const DATA_FILE = path.join(DATA_DIR, "contacts.json")
 
 function readAll() {

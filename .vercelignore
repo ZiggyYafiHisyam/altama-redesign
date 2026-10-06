@@ -1,1 +1,7 @@
-backend
+# backend/src is NOT ignored: api/index.js imports the Express app from there,
+# so those files have to be part of the deployment.
+backend/node_modules
+
+# Local JSON "database" files. On Vercel the stores write to /tmp instead
+# (see backend/src/services/dataDir.js).
+backend/data

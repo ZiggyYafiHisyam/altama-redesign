@@ -5,10 +5,19 @@ import pageViewRoutes from "./routes/pageView.routes.js"
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js"
 import { requestLogger } from "./middleware/requestLogger.js"
 
-const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:5173")
+const configuredOrigins = (process.env.CORS_ORIGIN ?? "")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean)
+
+// With CORS_ORIGIN unset: on Vercel the frontend and this API are served from
+// the same origin, so reflect whatever origin asks (which also covers the
+// per-deployment preview URLs); locally, allow the Vite dev server.
+const allowedOrigins = configuredOrigins.length > 0
+    ? configuredOrigins
+    : process.env.VERCEL
+        ? true
+        : ["http://localhost:5173"]
 
 const app = express()
 
