@@ -1,16 +1,43 @@
-# React + Vite
+# PT Altama Surya Anugerah — website
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Vite/React single-page site with an Express API and a built-in admin panel for
+editing every page's content.
 
-Currently, two official plugins are available:
+```
+npm install
+npm run dev        # frontend on :5173, API on :4000
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **The site** — `/`, `/visi-misi`, `/award`, `/board`, `/life-at`,
+  `/grow-with`, `/contact-us`, `/gallery`, `/web-gallery`, `/detail-news`, plus
+  a page per brand (`/brand/<slug>`) and per article (`/news/<slug>`).
+- **The admin** — `/admin`, signing in at `/admin/login` with `admin` / `123`
+  (the form is prefilled). See [ADMIN.md](ADMIN.md).
 
-## React Compiler
+## Layout
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Path | What it is |
+| --- | --- |
+| `frontend/pages/` | One folder per route. |
+| `frontend/components/` | The sections the pages are built from. |
+| `frontend/admin/` | The admin panel: layout, editor pages, form controls. |
+| `frontend/lib/` | The API client, the content provider, image resolution, text helpers. |
+| `shared/defaultContent.js` | The site's content, and the shape of it. Imported by both halves. |
+| `backend/src/` | The Express API: routes, controllers, JSON-file stores. |
+| `api/index.js` | The Vercel serverless wrapper around the same Express app. |
 
-## Expanding the ESLint configuration
+## Documentation
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- [ADMIN.md](ADMIN.md) — how content, images and the CRUD API work, and how to
+  change the admin credentials.
+- [DEPLOYMENT.md](DEPLOYMENT.md) — deploying to Vercel, environment variables,
+  and why stored data is temporary there.
+
+## Scripts
+
+| Command | Does |
+| --- | --- |
+| `npm run dev` | Frontend and backend together, with `/api` proxied. |
+| `npm run build` | Production build into `dist/`. |
+| `npm run lint` | ESLint over the frontend and backend. |
+| `npm start` | Serve the build and run the API. |

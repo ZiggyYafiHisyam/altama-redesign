@@ -29,3 +29,25 @@ export function addContact(entry) {
     writeAll(entries)
     return entry
 }
+
+// The admin inbox can mark a submission as handled and remove ones it is done
+// with, so the store needs more than append.
+export function updateContact(id, patch) {
+    const entries = readAll()
+    const entry = entries.find((item) => item.id === id)
+    if (!entry) return null
+
+    Object.assign(entry, patch, { id })
+    writeAll(entries)
+    return entry
+}
+
+export function deleteContact(id) {
+    const entries = readAll()
+    const index = entries.findIndex((entry) => entry.id === id)
+    if (index === -1) return null
+
+    const [removed] = entries.splice(index, 1)
+    writeAll(entries)
+    return removed
+}

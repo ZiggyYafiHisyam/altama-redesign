@@ -1,12 +1,18 @@
 import { Link } from "react-router-dom"
-import { brands } from "../../lib/brands"
+import { resolveImage } from "../../lib/assets"
+import { useSection } from "../../lib/content"
 
-// Placeholder tiles stand in for the real product shots, the same way the
-// gallery pages do until their images land.
-const productSlots = Array.from({ length: 8 }, (_, index) => index)
+// Product tiles fall back to empty placeholders, the same way the gallery pages
+// do, so a brand reads as finished before its product shots are uploaded.
+const PLACEHOLDER_COUNT = 8
 
 const BrandDetailComp = ({ brand }) => {
-    const otherBrands = brands.filter((item) => item.slug !== brand.slug)
+    const brands = useSection("brands")
+    const otherBrands = brands.items.filter((item) => item.slug !== brand.slug)
+
+    const products = brand.products?.length
+        ? brand.products
+        : Array.from({ length: PLACEHOLDER_COUNT }, (_, index) => ({ id: `placeholder-${index}` }))
 
     return (
         <main>
@@ -48,21 +54,21 @@ const BrandDetailComp = ({ brand }) => {
                                 className="inline-flex h-13 items-center justify-center rounded-full bg-white px-8 font-inter text-base font-semibold text-primary transition-transform hover:scale-105"
                                 to="/contact-us"
                             >
-                                Hubungi Kami
+                                {brands.contactButtonLabel}
                             </Link>
                             <Link
                                 className="inline-flex h-13 items-center justify-center rounded-full border-2 border-white/50 px-8 font-inter text-base font-semibold text-white transition-colors hover:bg-white/10"
                                 to="/award"
                             >
-                                Awards &amp; Certification
+                                {brands.awardButtonLabel}
                             </Link>
                         </div>
                     </header>
 
                     <div className="mt-14 grid gap-4 sm:grid-cols-3 md:gap-6">
-                        {brand.highlights.map((highlight) => (
+                        {(brand.highlights ?? []).map((highlight) => (
                             <div
-                                key={highlight.label}
+                                key={highlight.id}
                                 className="rounded-xl border border-white/20 bg-white/10 px-5 py-4"
                             >
                                 <h2 className="font-header text-4xl font-bold text-white">{highlight.value}</h2>
@@ -76,19 +82,28 @@ const BrandDetailComp = ({ brand }) => {
             <section className="bg-white px-6 py-16 md:px-12 md:py-20">
                 <div className="mx-auto max-w-350">
                     <h2 className="font-header text-[34px] font-medium leading-[1.1] tracking-[-0.04em] text-primary md:text-[56px]">
-                        Produk {brand.name}
+                        {brands.productsTitlePrefix} {brand.name}
                     </h2>
                     <p className="mt-3 max-w-150 font-inter text-base leading-[1.3] text-grey md:text-xl">
                         Jelajahi rangkaian produk {brand.name} untuk kebutuhan teknik, otomotif, dan industri Anda.
                     </p>
 
                     <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5 lg:gap-6">
-                        {productSlots.map((slot) => (
+                        {products.map((product, index) => (
                             <div
-                                key={slot}
-                                className="aspect-square rounded-3xl border border-abu bg-abu/60"
-                                aria-label={`${brand.name} product placeholder ${slot + 1}`}
-                            />
+                                key={product.id}
+                                className="aspect-square overflow-hidden rounded-3xl border border-abu bg-abu/60"
+                                aria-label={product.name || `${brand.name} product placeholder ${index + 1}`}
+                            >
+                                {resolveImage(product.image) && (
+                                    <img
+                                        className="h-full w-full object-cover"
+                                        src={resolveImage(product.image)}
+                                        alt={product.name || ""}
+                                        loading="lazy"
+                                    />
+                                )}
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -97,12 +112,12 @@ const BrandDetailComp = ({ brand }) => {
             <section className="bg-white px-6 pb-20 md:px-12">
                 <div className="mx-auto max-w-350 rounded-3xl border border-[#ACA9DF] px-6 py-12 text-center md:py-16">
                     <h2 className="font-header text-[34px] font-medium leading-[1.1] tracking-[-0.04em] text-primary md:text-[56px]">
-                        Brand Lainnya
+                        {brands.otherBrandsTitle}
                     </h2>
                     <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
                         {otherBrands.map((item) => (
                             <Link
-                                key={item.slug}
+                                key={item.id}
                                 className="inline-flex h-15.25 w-full max-w-63.5 items-center justify-center rounded-full bg-primary font-inter text-base font-semibold text-white transition-transform hover:scale-105"
                                 to={`/brand/${item.slug}`}
                             >

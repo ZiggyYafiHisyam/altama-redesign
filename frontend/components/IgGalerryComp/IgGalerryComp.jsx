@@ -1,8 +1,50 @@
-import { Link } from "react-router-dom"
+import GalleryHeader from "../GalleryHeader"
+import NewsCta from "../NewsCta"
+import { resolveImage } from "../../lib/assets"
+import { useSection } from "../../lib/content"
+import SmartLink from "../../ui/SmartLink"
 
-const gallerySlots = Array.from({ length: 8 }, (_, index) => index)
+// One gallery tile. A post with no image yet renders the translucent placeholder
+// the page shipped with, so the grid keeps its shape while the real photos are
+// still being collected.
+const Tile = ({ post }) => {
+    const image = resolveImage(post.image)
+
+    const tile = image ? (
+        <img
+            className="h-full w-full object-cover"
+            src={image}
+            alt={post.caption || ""}
+            loading="lazy"
+        />
+    ) : null
+
+    const className = "aspect-405/629 overflow-hidden rounded-3xl border border-white/10 bg-white/10"
+
+    if (post.link) {
+        return (
+            <a
+                className={`${className} block transition-transform hover:scale-[1.02]`}
+                href={post.link}
+                target="_blank"
+                rel="noreferrer noopener"
+                aria-label={post.caption || "Instagram post"}
+            >
+                {tile}
+            </a>
+        )
+    }
+
+    return (
+        <div className={className} aria-label={post.caption || undefined}>
+            {tile}
+        </div>
+    )
+}
 
 const IgGalerryComp = () => {
+    const gallery = useSection("gallery")
+
     return (
         <main>
             <section
@@ -16,64 +58,26 @@ const IgGalerryComp = () => {
                 </div>
 
                 <div className="relative mx-auto max-w-350">
-                    <header className="text-center text-white">
-                        <h1 className="font-header text-4xl font-semibold tracking-[-0.04em] md:text-[56px]">
-                            Moments from <span className="text-[#F4C41C]">Altama</span>
-                        </h1>
-                        <p className="mt-3 font-inter text-base text-white/75 md:text-xl">
-                            Dokumentasi kegiatan, budaya kerja, dan perjalanan Altama.
-                        </p>
-
-                        <div className="mx-auto mt-8 flex w-fit rounded-full border-4 border-[#ACA9DF] bg-abu p-0.5">
-                            <Link
-                                className="h-11 rounded-full bg-primary px-7 py-3 font-inter text-sm font-semibold text-white md:text-base"
-                                to="/gallery"
-                            >
-                                Instagram Gallery
-                            </Link>
-                            <Link
-                                className="h-11 rounded-full px-7 py-3 font-inter text-sm font-semibold text-grey transition-colors hover:bg-white md:text-base"
-                                to="/web-gallery"
-                            >
-                                Web Gallery
-                            </Link>
-                        </div>
-                    </header>
+                    <GalleryHeader active="instagram" />
 
                     <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5 lg:mt-14 lg:gap-6">
-                        {gallerySlots.map((slot) => (
-                            <div
-                                key={slot}
-                                className="aspect-405/629 rounded-3xl border border-white/10 bg-white/10"
-                                aria-label={`Gallery placeholder ${slot + 1}`}
-                            />
+                        {gallery.instagram.map((post) => (
+                            <Tile key={post.id} post={post} />
                         ))}
                     </div>
 
                     <div className="flex justify-center pt-10 lg:pt-14">
-                        <Link
+                        <SmartLink
                             className="inline-flex h-13 items-center rounded-full border-4 border-[#ACA9DF] bg-white px-8 font-inter text-sm font-semibold text-primary transition-transform hover:scale-105 md:text-base"
-                            to="/detail-news"
+                            to={gallery.instagramButtonUrl}
                         >
-                            See Our Instagram <span className="ml-2 text-lg">›</span>
-                        </Link>
+                            {gallery.instagramButtonLabel} <span className="ml-2 text-lg">›</span>
+                        </SmartLink>
                     </div>
                 </div>
             </section>
 
-            <section className="relative overflow-hidden bg-white px-6 py-16 md:px-12 md:py-20">
-                <div className="mx-auto flex min-h-67.5 max-w-265 flex-col items-center justify-center rounded-3xl border border-[#ACA9DF] px-6 text-center">
-                    <h2 className="font-header text-[34px] font-medium leading-[1.1] tracking-[-0.04em] text-primary md:text-[56px]">
-                        Insights, Innovation, and Progress
-                    </h2>
-                    <p className="mt-4 max-w-121.75 font-inter text-base leading-[1.3] text-grey md:text-xl">
-                        Temukan solusi terbaik untuk kebutuhan teknik, otomotif, dan industri Anda.
-                    </p>
-                    <Link className="mt-8 inline-flex h-15.25 w-53 items-center justify-center rounded-full bg-primary font-inter text-base font-semibold text-white" to="/detail-news">
-                        Explore News
-                    </Link>
-                </div>
-            </section>
+            <NewsCta className="bg-white px-6 py-16 md:px-12 md:py-20" />
         </main>
     )
 }

@@ -58,3 +58,21 @@
         grid-template-rows: repeat(6, 140px) !important;
     }
 }
+
+/* Admin: toasts slide up as they appear, so a save confirmation is noticed
+   without stealing focus from whatever is being edited. */
+.admin-toast {
+    animation: admin-toast-in 0.22s ease-out;
+}
+
+@keyframes admin-toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(0.75rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

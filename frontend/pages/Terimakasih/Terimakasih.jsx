@@ -1,8 +1,12 @@
-import { Link } from "react-router-dom"
 import Navbar from "../../components/Navbar"
 import sentIcon from "../../assets/icon/terkirim.svg"
+import { useSection } from "../../lib/content"
+import { Multiline } from "../../lib/text"
+import SmartLink from "../../ui/SmartLink"
 
 const Terimakasih = () => {
+    const thanks = useSection("thanksPage")
+
     return (
         <div className="min-h-screen bg-[#605BC3]">
             <Navbar />
@@ -21,21 +25,19 @@ const Terimakasih = () => {
                 <section className="relative z-10 flex max-w-150 flex-col items-center text-center">
                     <img className="h-32 w-auto" src={sentIcon} alt="Pesan berhasil terkirim" />
                     <h1 className="mt-8 font-header text-5xl font-semibold tracking-[-0.04em] text-[#F4C41C] md:text-7xl">
-                        Terima Kasih
+                        {thanks.title}
                     </h1>
                     <p className="mt-6 font-inter text-xl leading-[1.2] text-white md:text-2xl">
-                        <strong>Sudah mengirimkan ceritamu!</strong>
+                        <strong>{thanks.headline}</strong>
                         <br />
-                        Kami akan segera tindak lanjuti cerita dan
-                        <br className="hidden md:block" />
-                        pengalamanmu segera.
+                        <Multiline text={thanks.description} breakClassName="hidden md:block" />
                     </p>
-                    <Link
+                    <SmartLink
                         className="mt-10 inline-flex h-15 items-center justify-center rounded-full border-4 border-[#ACA9DF] bg-white px-8 font-header text-xl font-semibold text-primary transition-transform hover:scale-105"
-                        to="/contact-us"
+                        to={thanks.buttonPath}
                     >
-                        Back to Contact <span className="ml-4 text-2xl">›</span>
-                    </Link>
+                        {thanks.buttonLabel} <span className="ml-4 text-2xl">›</span>
+                    </SmartLink>
                 </section>
             </main>
         </div>

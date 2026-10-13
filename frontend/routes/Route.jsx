@@ -12,6 +12,7 @@ import Terimakasih from "../pages/Terimakasih"
 import IgGalerry from "../pages/IgGalerry"
 import WebGallery from "../pages/WebGallery"
 import DetailNews from "../pages/DetailNews"
+import adminRoutes from "../admin/routes"
 
 const router = createBrowserRouter([
     {
@@ -22,19 +23,12 @@ const router = createBrowserRouter([
         path: '/visi-misi',
         element: <VisiMisi />,
     },
-    // Brand pages. Listed one by one rather than as /brand/:slug so that only
-    // the three real brands resolve; see lib/brands.js for their content.
+    // Brands are content (see the `brands` section of the content document), so
+    // one dynamic route covers however many the admin defines; an unknown slug
+    // renders the page's own "not found" state.
     {
-        path: '/brand/tekiro',
-        element: <BrandDetail slug="tekiro" />,
-    },
-    {
-        path: '/brand/rexco',
-        element: <BrandDetail slug="rexco" />,
-    },
-    {
-        path: '/brand/ryu',
-        element: <BrandDetail slug="ryu" />,
+        path: '/brand/:slug',
+        element: <BrandDetail />,
     },
     {
         path: '/award',
@@ -68,10 +62,17 @@ const router = createBrowserRouter([
         path: '/web-gallery',
         element: <WebGallery />,
     },
+    // /detail-news opens whichever article is flagged `featured`; /news/:slug
+    // opens a specific one. Both render the same page.
     {
         path: '/detail-news',
         element: <DetailNews />,
     },
+    {
+        path: '/news/:slug',
+        element: <DetailNews />,
+    },
+    ...adminRoutes,
     // Anything unrecognised goes home instead of rendering a blank screen.
     {
         path: '*',
@@ -86,6 +87,10 @@ const router = createBrowserRouter([
 let lastLoggedPath = null
 
 function reportPageView(pathname, search) {
+    // The admin panel is staff using the CMS, not visitors reading the site, so
+    // it stays out of the analytics the admin itself reports on.
+    if (pathname.startsWith("/admin")) return
+
     const fullPath = `${pathname}${search}`
     if (fullPath === lastLoggedPath) return
     lastLoggedPath = fullPath

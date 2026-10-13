@@ -1,16 +1,13 @@
 import { useState } from "react"
-import alva from "../../assets/hero/ALVA.png"
 import { useNavigate } from "react-router-dom"
 import emailIcon from "../../assets/icon/email.svg"
 import locationIcon from "../../assets/icon/location.svg"
 import phoneIcon from "../../assets/icon/telepon.svg"
+import NewsCta from "../NewsCta"
+import { resolveImage } from "../../lib/assets"
+import { useSection } from "../../lib/content"
 import { submitContactForm } from "../../lib/api"
-
-const contactDetails = [
-    { icon: phoneIcon, label: "+62 xxx xxxx xxxx" },
-    { icon: emailIcon, label: "info@altama.co.id" },
-    { icon: locationIcon, label: "Jakarta, Indonesia" },
-]
+import { HeroTitle } from "../../lib/text"
 
 const initialFormState = {
     name: "",
@@ -22,9 +19,19 @@ const initialFormState = {
 
 const ContactUsComp = () => {
     const navigate = useNavigate()
+    const contactPage = useSection("contactPage")
+    const site = useSection("site")
     const [formData, setFormData] = useState(initialFormState)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState("")
+
+    // The three icons are part of the layout, not the content; only the text
+    // beside them is editable.
+    const contactDetails = [
+        { icon: phoneIcon, label: site.contact.phone },
+        { icon: emailIcon, label: site.contact.email },
+        { icon: locationIcon, label: site.contact.shortAddress },
+    ]
 
     const handleChange = (event) => {
         const { name, value } = event.target
@@ -61,10 +68,14 @@ const ContactUsComp = () => {
                 <div className="relative mx-auto grid max-w-275 items-center gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-20">
                     <div className="relative min-h-125">
                         <h1 className="font-header text-[42px] font-semibold leading-none tracking-[-0.04em] text-white md:text-[56px]">
-                            Connect <span className="text-[#F4C41C]">With Us!</span>
+                            <HeroTitle
+                                before={contactPage.titleBefore}
+                                highlight={contactPage.titleHighlight}
+                                highlightClassName="text-[#F4C41C]"
+                            />
                         </h1>
                         <p className="mt-3 max-w-85 font-inter text-base leading-[1.15] text-white md:text-xl">
-                            Kami siap membantu kebutuhan bisnis, distribusi, dan kerja sama Anda.
+                            {contactPage.subtitle}
                         </p>
 
                         <div className="mt-8 flex flex-col gap-4">
@@ -79,17 +90,19 @@ const ContactUsComp = () => {
                         <div className="absolute bottom-0 left-0 flex h-31.5 w-full max-w-104 items-end rounded-3xl bg-white px-7 pt-5 md:h-36">
                             <div className="relative z-10 self-start">
                                 <h2 className="font-header text-xl font-semibold text-primary md:text-2xl">
-                                    Connect With Altama!
+                                    {contactPage.cardTitle}
                                 </h2>
                                 <p className="mt-1 max-w-53 font-inter text-xs leading-tight text-grey md:text-sm">
-                                    Tim kami siap membantu Anda setiap saat.
+                                    {contactPage.cardText}
                                 </p>
                             </div>
-                            <img
-                                className="pointer-events-none absolute bottom-0 right-2 z-20 h-48 object-contain md:h-56"
-                                src={alva}
-                                alt="Alva menyambut pengunjung"
-                            />
+                            {resolveImage(site.mascot) && (
+                                <img
+                                    className="pointer-events-none absolute bottom-0 right-2 z-20 h-48 object-contain md:h-56"
+                                    src={resolveImage(site.mascot)}
+                                    alt={`${site.mascotAlt} menyambut pengunjung`}
+                                />
+                            )}
                         </div>
                     </div>
 
@@ -161,29 +174,13 @@ const ContactUsComp = () => {
                             type="submit"
                             disabled={isSubmitting}
                         >
-                            {isSubmitting ? "Sending..." : "Send Message"}
+                            {isSubmitting ? contactPage.submittingLabel : contactPage.submitLabel}
                         </button>
                     </form>
                 </div>
             </section>
 
-            <section className="relative overflow-hidden bg-white px-6 py-18 md:px-12 md:py-22">
-                <div className="mx-auto flex min-h-67.5 max-w-265 flex-col items-center justify-center rounded-3xl border border-[#ACA9DF] px-6 text-center">
-                    <h2 className="font-header text-[34px] font-medium leading-[1.1] tracking-[-0.04em] text-primary md:text-[56px]">
-                        Insights, Innovation, and Progress
-                    </h2>
-                    <p className="mt-4 max-w-121.75 font-inter text-base leading-[1.3] text-grey md:text-xl">
-                        Temukan solusi terbaik untuk kebutuhan teknik, otomotif, dan industri Anda.
-                    </p>
-                        <button
-                            className="mt-8 h-15.25 w-53 rounded-full bg-primary font-inter text-base font-semibold text-white"
-                            type="button"
-                            onClick={() => navigate("/detail-news")}
-                        >
-                        Explore News
-                    </button>
-                </div>
-            </section>
+            <NewsCta />
         </main>
     )
 }

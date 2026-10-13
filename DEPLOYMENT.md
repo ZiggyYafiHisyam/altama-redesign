@@ -10,6 +10,10 @@ project. No environment variables are required.
   refresh or a direct link.
 - Because both are served from one origin, the frontend calls `/api/...`
   relative — `VITE_API_BASE_URL` stays unset.
+- `shared/defaultContent.js` is imported by both halves (the API seeds the
+  content store from it, the frontend falls back to it), so it has to stay in
+  the deployment. Vercel traces imports, so nothing needs configuring — just
+  don't add it to `.vercelignore`.
 
 ## Deploy
 
@@ -22,31 +26,51 @@ project. No environment variables are required.
 Verify with `https://<your-app>.vercel.app/api/health`, which should return
 `{"success":true,"status":"ok"}`.
 
+## Set the admin password
+
+The site's content is edited at `/admin` (see [ADMIN.md](ADMIN.md)), and the
+credentials default to `admin` / `123`. **Set `ADMIN_USERNAME` and
+`ADMIN_PASSWORD` in Vercel before the deployment is public**, or anyone who
+finds `/admin/login` can rewrite the site.
+
 ## Data storage is temporary
 
-Contacts and page views are written to JSON files. On Vercel the deployment
-filesystem is read-only, so the stores write to `/tmp` instead (see
+Site content, uploaded images, contacts and page views are written to JSON
+files. On Vercel the deployment filesystem is read-only, so the stores write to
+`/tmp` instead (see
 [backend/src/services/dataDir.js](backend/src/services/dataDir.js)).
 
 **`/tmp` is per-instance and ephemeral.** Entries vanish when the serverless
 instance is recycled, and two instances running at once do not see each other's
 data. Treat it as a scratch cache: good enough to prove the flow works, not
-somewhere to keep real contact-form submissions. Moving to a hosted database
-(e.g. Postgres via `DATABASE_URL`) is the fix when the data has to last — only
-the two files in `backend/src/services/` would change.
+somewhere to keep real contact-form submissions — or the real site's content.
+When content disappears the site falls back to the defaults bundled in
+`shared/defaultContent.js`, so pages stay complete rather than going blank, but
+the edits are gone.
+
+The fix is either a persistent `DATA_DIR` (below) or moving the stores to a
+hosted database (e.g. Postgres via `DATABASE_URL`) — only the files in
+`backend/src/services/` would change. Until then, take a backup from the admin's
+Settings page after any substantial editing session.
 
 ## Optional environment variables
 
 Set these in Vercel → Settings → Environment Variables. All are optional.
 
-- `ADMIN_API_KEY` — required to read `GET /api/contact` and
-  `GET /api/page-views`; send it back as the `x-admin-key` header. Unset, those
-  two routes return 503, so submissions still work but nothing can list them.
+- `ADMIN_USERNAME`, `ADMIN_PASSWORD` — the admin panel's credentials. Optional
+  only in the sense that the app runs without them; see the warning above.
+- `ADMIN_SESSION_SECRET`, `ADMIN_SESSION_HOURS` — how admin sessions are signed
+  and how long they last. See [ADMIN.md](ADMIN.md).
+- `ADMIN_API_KEY` — a machine key for reading `GET /api/contact` and
+  `GET /api/page-views` without signing in; send it as the `x-admin-key` header.
+  The admin panel does not need it (it uses a session), so unset, those routes
+  are reachable only by a signed-in admin.
 - `CORS_ORIGIN` — comma-separated allowed origins. Unset on Vercel, the API
   reflects the requesting origin, which already covers the production domain and
   preview URLs.
 - `DATA_DIR` — override where the JSON files are written. Only useful on a host
-  with a persistent disk; on Vercel it must stay under `/tmp`.
+  with a persistent disk; on Vercel it must stay under `/tmp`. This is the one
+  variable that makes admin edits survive.
 
 ## Running the backend somewhere else later
 

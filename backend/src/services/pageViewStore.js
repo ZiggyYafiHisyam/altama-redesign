@@ -32,3 +32,9 @@ export function addPageView(entry) {
     writeAll(trimmed)
     return entry
 }
+
+// Lets the admin reset the analytics log (useful after testing, and the only
+// way to shrink a log that has hit MAX_ENTRIES).
+export function clearPageViews() {
+    writeAll([])
+}

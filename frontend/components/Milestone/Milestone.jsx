@@ -1,29 +1,8 @@
 import { useRef } from "react"
-
-const milestones = [
-    {
-        year: "2011",
-        description: "Altama berdiri di Jakarta, memulai perjalanan sebagai distributor teknik.",
-    },
-    {
-        year: "2015",
-        description: "Perluasan jaringan distribusi ke lebih banyak kota besar.",
-    },
-    {
-        year: "2018",
-        description: "Penambahan produk baru: Tekiro Handtools, RYU Power Tools, Rexco Chemicals.",
-    },
-    {
-        year: "2021",
-        description: "Pertumbuhan bisnis dan penguatan jaringan distribusi nasional.",
-    },
-    {
-        year: "2024",
-        description: "Terus berkembang menghadirkan solusi terbaik untuk Indonesia.",
-    },
-]
+import { useSection } from "../../lib/content"
 
 const Milestone = () => {
+    const { milestoneTitle, milestones } = useSection("visiMisi")
     const trackRef = useRef(null)
     const isDragging = useRef(false)
     const dragStartX = useRef(0)
@@ -56,7 +35,7 @@ const Milestone = () => {
         <section className="px-5 py-16 md:px-10 lg:px-14.5 lg:py-24">
             <div className="mx-auto max-w-422.5 overflow-hidden rounded-4xl bg-linear-to-br from-primary to-[#605BC3] py-9 text-white md:py-10 lg:py-11">
                 <h2 className="font-inter text-center text-[34px] font-semibold leading-none tracking-[-0.04em] md:text-[40px]">
-                    MILESTONE
+                    {milestoneTitle}
                 </h2>
 
                 <div
@@ -70,7 +49,7 @@ const Milestone = () => {
                 >
                     {milestones.map((milestone, index) => (
                         <article
-                            key={milestone.year}
+                            key={milestone.id}
                             className={`flex h-36 ${index === 0 ? "w-[min(469px,calc(100vw-64px))]" : "w-[min(427px,calc(100vw-64px))]"} shrink-0 items-start gap-4 rounded-2xl px-5 py-5 lg:gap-4 lg:px-5 ${
                                 index === 0
                                     ? "border-2 border-[#ACA9DF] bg-primary shadow-[0_0_0_1px_rgba(255,255,255,0.06)]"

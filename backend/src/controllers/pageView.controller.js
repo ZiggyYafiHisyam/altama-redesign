@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { addPageView, listPageViews } from "../services/pageViewStore.js"
+import { addPageView, clearPageViews, listPageViews } from "../services/pageViewStore.js"
 
 export function createPageView(req, res) {
     const entry = {
@@ -14,4 +14,9 @@ export function createPageView(req, res) {
 
 export function getPageViews(_req, res) {
     res.status(200).json({ success: true, data: listPageViews() })
+}
+
+export function resetPageViews(_req, res) {
+    clearPageViews()
+    res.status(200).json({ success: true, data: [] })
 }
