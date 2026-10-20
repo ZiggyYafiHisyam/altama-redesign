@@ -1,7 +1,8 @@
 # PT Altama Surya Anugerah — website
 
 A Vite/React single-page site with an Express API and a built-in admin panel for
-editing every page's content.
+swapping the site's images. The copy is fixed content in
+`shared/defaultContent.js`; the pictures are editable at `/admin`.
 
 ```
 npm install
@@ -20,7 +21,7 @@ npm run dev        # frontend on :5173, API on :4000
 | --- | --- |
 | `frontend/pages/` | One folder per route. |
 | `frontend/components/` | The sections the pages are built from. |
-| `frontend/admin/` | The admin panel: layout, editor pages, form controls. |
+| `frontend/admin/` | The admin panel: layout, the image editors, form controls. |
 | `frontend/lib/` | The API client, the content provider, image resolution, text helpers. |
 | `shared/defaultContent.js` | The site's content, and the shape of it. Imported by both halves. |
 | `backend/src/` | The Express API: routes, controllers, JSON-file stores. |
@@ -28,8 +29,9 @@ npm run dev        # frontend on :5173, API on :4000
 
 ## Documentation
 
-- [ADMIN.md](ADMIN.md) — how content, images and the CRUD API work, and how to
-  change the admin credentials.
+- [ADMIN.md](ADMIN.md) — which images are editable and how to add another, how
+  the content document and the CRUD API work, and how to change the admin
+  credentials.
 - [DEPLOYMENT.md](DEPLOYMENT.md) — deploying to Vercel, environment variables,
   and why stored data is temporary there.
 

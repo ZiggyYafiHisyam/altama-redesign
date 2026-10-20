@@ -86,6 +86,30 @@ const router = createBrowserRouter([
 // to be reported explicitly like this).
 let lastLoggedPath = null
 
+const SESSION_KEY = "altama.visit"
+
+// One random id per visit, kept in sessionStorage: it lives as long as the tab
+// does, is never sent anywhere else, and identifies a sitting rather than a
+// person -- the same visitor coming back tomorrow is a new id. It is what lets
+// the admin see "this visit opened Careers, then Life at Altama, then Contact"
+// instead of three unrelated rows.
+function visitId() {
+    try {
+        const existing = sessionStorage.getItem(SESSION_KEY)
+        if (existing) return existing
+        const id =
+            typeof crypto !== "undefined" && crypto.randomUUID
+                ? crypto.randomUUID()
+                : `v-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+        sessionStorage.setItem(SESSION_KEY, id)
+        return id
+    } catch {
+        // Private mode, or storage blocked: the visit is still logged, it just
+        // cannot be grouped.
+        return null
+    }
+}
+
 function reportPageView(pathname, search) {
     // The admin panel is staff using the CMS, not visitors reading the site, so
     // it stays out of the analytics the admin itself reports on.
@@ -94,7 +118,7 @@ function reportPageView(pathname, search) {
     const fullPath = `${pathname}${search}`
     if (fullPath === lastLoggedPath) return
     lastLoggedPath = fullPath
-    logPageView(fullPath, document.referrer || null).catch(() => {
+    logPageView(fullPath, document.referrer || null, visitId()).catch(() => {
         // Logging is best-effort and should never block navigation.
     })
 }

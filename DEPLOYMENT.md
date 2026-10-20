@@ -28,7 +28,7 @@ Verify with `https://<your-app>.vercel.app/api/health`, which should return
 
 ## Set the admin password
 
-The site's content is edited at `/admin` (see [ADMIN.md](ADMIN.md)), and the
+The site's images are edited at `/admin` (see [ADMIN.md](ADMIN.md)), and the
 credentials default to `admin` / `123`. **Set `ADMIN_USERNAME` and
 `ADMIN_PASSWORD` in Vercel before the deployment is public**, or anyone who
 finds `/admin/login` can rewrite the site.

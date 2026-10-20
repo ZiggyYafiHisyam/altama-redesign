@@ -80,8 +80,10 @@ export function submitContactForm(formData) {
     return request("/api/contact", { method: "POST", body: json(formData) })
 }
 
-export function logPageView(path, referrer) {
-    return request("/api/page-views", { method: "POST", body: json({ path, referrer }) })
+// `sessionId` ties the pages of one visit together so the admin can read a
+// journey rather than a pile of hits. See reportPageView in routes/Route.jsx.
+export function logPageView(path, referrer, sessionId) {
+    return request("/api/page-views", { method: "POST", body: json({ path, referrer, sessionId }) })
 }
 
 export function fetchContent() {
@@ -102,7 +104,9 @@ export function fetchStats() {
     return request("/api/admin/stats", { auth: true })
 }
 
-// Merges `value` into one section, leaving its other fields untouched.
+// Merges `value` into one section, leaving its other fields untouched -- which is
+// how the admin saves images without touching the copy around them. Arrays are
+// taken wholesale, so a gallery list is saved exactly as the editor shows it.
 export function saveSection(section, value) {
     return request(`/api/content/${section}`, { method: "PATCH", auth: true, body: json(value) })
 }
@@ -112,41 +116,8 @@ export function replaceContent(document) {
     return request("/api/content", { method: "PUT", auth: true, body: json(document) })
 }
 
-export function resetSection(section) {
-    return request(`/api/content/reset/${section}`, { method: "POST", auth: true })
-}
-
 export function resetAllContent() {
     return request("/api/content/reset", { method: "POST", auth: true })
-}
-
-// `collection` is a dotted path, e.g. "visiMisi.milestones".
-export function createItem(collection, item) {
-    return request(`/api/content/items/${collection}`, {
-        method: "POST",
-        auth: true,
-        body: json(item),
-    })
-}
-
-export function updateItem(collection, id, patch) {
-    return request(`/api/content/items/${collection}/${id}`, {
-        method: "PUT",
-        auth: true,
-        body: json(patch),
-    })
-}
-
-export function deleteItem(collection, id) {
-    return request(`/api/content/items/${collection}/${id}`, { method: "DELETE", auth: true })
-}
-
-export function reorderItems(collection, ids) {
-    return request(`/api/content/items/${collection}/order`, {
-        method: "PUT",
-        auth: true,
-        body: json({ ids }),
-    })
 }
 
 // --- Admin: media library --------------------------------------------------

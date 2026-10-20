@@ -1,26 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { bundledAssets, describeImage, resolveImage } from "../../lib/assets"
-import { deleteMedia, fetchMedia, uploadMedia } from "../../lib/api"
+import { deleteMedia, fetchMedia } from "../../lib/api"
 import { useToast } from "../lib/toast"
+import { IMAGE_ACCEPT, formatBytes, uploadImageFile } from "../lib/upload"
 import { FieldShell, IconButton } from "./Fields"
-
-// Reads a picked file into the base64 data URL the API expects.
-function readAsDataUrl(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => resolve(reader.result)
-        reader.onerror = () => reject(new Error(`Could not read ${file.name}.`))
-        reader.readAsDataURL(file)
-    })
-}
-
-const MAX_BYTES = 3 * 1024 * 1024
-
-function formatBytes(bytes) {
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
-    return `${(bytes / 1024 / 1024).toFixed(1)} MB`
-}
 
 // Every image on the site is set through this one control, so there is a single
 // place that knows how to upload, pick from the library, reuse a shipped asset,
@@ -30,43 +13,47 @@ export default function ImageField({ label, hint, value, onChange, aspect = "asp
     const toast = useToast()
     const fileInputRef = useRef(null)
     const [isUploading, setUploading] = useState(false)
+    const [isDraggedOver, setDraggedOver] = useState(false)
 
     const preview = resolveImage(value)
     const description = describeImage(value)
 
     const upload = async (file) => {
         if (!file) return
-        if (file.size > MAX_BYTES) {
-            toast.error(`${file.name} is ${formatBytes(file.size)}. The limit is 3 MB.`)
-            return
-        }
-
         setUploading(true)
-        try {
-            const dataUrl = await readAsDataUrl(file)
-            const body = await uploadMedia(file.name, dataUrl)
-            onChange(body.data.url)
-            toast.success(`Uploaded ${body.data.name}.`)
-        } catch (error) {
-            toast.error(error.message)
-        } finally {
-            setUploading(false)
-            // Clear the input so picking the same file again still fires onChange.
-            if (fileInputRef.current) fileInputRef.current.value = ""
-        }
+        const url = await uploadImageFile(file, toast)
+        if (url) onChange(url)
+        setUploading(false)
+        // Clear the input so picking the same file again still fires onChange.
+        if (fileInputRef.current) fileInputRef.current.value = ""
     }
 
     return (
         <FieldShell label={label} hint={hint}>
             <div className="flex items-start gap-4">
+                {/* The preview doubles as a drop target, so replacing a picture can
+                    be one drag from a folder -- the same gesture the gallery tiles
+                    take. */}
                 <div
-                    className={`${aspect} w-32 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-[repeating-conic-gradient(#f1f5f9_0%_25%,#ffffff_0%_50%)] bg-size-[16px_16px]`}
+                    className={`${aspect} w-32 shrink-0 overflow-hidden rounded-xl border bg-[repeating-conic-gradient(#f1f5f9_0%_25%,#ffffff_0%_50%)] bg-size-[16px_16px] transition-colors ${
+                        isDraggedOver ? "border-primary ring-2 ring-primary/30" : "border-slate-200"
+                    }`}
+                    onDragOver={(event) => {
+                        event.preventDefault()
+                        setDraggedOver(true)
+                    }}
+                    onDragLeave={() => setDraggedOver(false)}
+                    onDrop={(event) => {
+                        event.preventDefault()
+                        setDraggedOver(false)
+                        upload(event.dataTransfer.files?.[0])
+                    }}
                 >
                     {preview ? (
                         <img src={preview} alt="" className="h-full w-full object-contain" />
                     ) : (
-                        <div className="flex h-full w-full items-center justify-center font-inter text-[11px] text-slate-400">
-                            No image
+                        <div className="flex h-full w-full items-center justify-center px-1 text-center font-inter text-[11px] text-slate-400">
+                            {isDraggedOver ? "Drop to upload" : "No image"}
                         </div>
                     )}
                 </div>
@@ -114,7 +101,7 @@ export default function ImageField({ label, hint, value, onChange, aspect = "asp
                         ref={fileInputRef}
                         className="hidden"
                         type="file"
-                        accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,image/avif"
+                        accept={IMAGE_ACCEPT}
                         onChange={(event) => upload(event.target.files?.[0])}
                     />
                 </div>
@@ -189,18 +176,10 @@ export function ImagePicker({ current, onPick, onClose, manageOnly = false }) {
     }, [tab, uploads, query])
 
     const handleUpload = async (files) => {
+        // Sequential rather than parallel: each upload is a 3 MB base64 body, and
+        // a failure mid-way should still leave the ones before it in the library.
         for (const file of files) {
-            if (file.size > MAX_BYTES) {
-                toast.error(`${file.name} is ${formatBytes(file.size)}. The limit is 3 MB.`)
-                continue
-            }
-            try {
-                const dataUrl = await readAsDataUrl(file)
-                const body = await uploadMedia(file.name, dataUrl)
-                toast.success(`Uploaded ${body.data.name}.`)
-            } catch (error) {
-                toast.error(error.message)
-            }
+            await uploadImageFile(file, toast)
         }
         if (fileInputRef.current) fileInputRef.current.value = ""
         load()
@@ -278,7 +257,7 @@ export function ImagePicker({ current, onPick, onClose, manageOnly = false }) {
                         className="hidden"
                         type="file"
                         multiple
-                        accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,image/avif"
+                        accept={IMAGE_ACCEPT}
                         onChange={(event) => handleUpload([...(event.target.files ?? [])])}
                     />
                 </header>

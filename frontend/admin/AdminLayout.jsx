@@ -3,37 +3,30 @@ import { Link, NavLink, Navigate, Outlet, useLocation } from "react-router-dom"
 import { resolveImage } from "../lib/assets"
 import { useContent } from "../lib/content"
 import { useAdminAuth } from "./lib/auth"
+import { IMAGE_GROUPS } from "./lib/imageFields"
 import ToastProvider from "./components/ToastProvider"
 
-// Grouped so the sidebar mirrors how someone thinks about the site -- "the pages"
-// first, then the lists that feed several pages, then the data coming in.
+// Every page of the site whose images can be replaced, as the "Site images" menu
+// lists them. The fixed slots come straight from the image registry, so a new
+// group in lib/imageFields.js appears here on its own; the gallery is its own
+// editor because its images are a list you add to and delete from.
+const IMAGE_PAGES = [
+    ...IMAGE_GROUPS.map((group) => ({ to: `/admin/images/${group.id}`, label: group.title })),
+    { to: "/admin/gallery", label: "Gallery & Instagram" },
+]
+
+// The admin edits images, so the sidebar is short: one menu for the images --
+// uploading and deleting happen inside the image picker, so the library needs no
+// entry of its own -- then the data the site collects, then the whole-document
+// operations.
 const NAV_GROUPS = [
     {
         title: "Overview",
         links: [{ to: "/admin", label: "Dashboard", icon: "◫", end: true }],
     },
     {
-        title: "Pages",
-        links: [
-            { to: "/admin/home", label: "Home", icon: "⌂" },
-            { to: "/admin/visi-misi", label: "Vision & Mission", icon: "◎" },
-            { to: "/admin/awards", label: "Awards", icon: "✦" },
-            { to: "/admin/board", label: "Board of Directors", icon: "☖" },
-            { to: "/admin/life-at", label: "Life at Altama", icon: "♥" },
-            { to: "/admin/careers", label: "Careers", icon: "⚒" },
-            { to: "/admin/gallery", label: "Gallery", icon: "▦" },
-            { to: "/admin/news", label: "News", icon: "✎" },
-            { to: "/admin/brands", label: "Brands", icon: "◈" },
-            { to: "/admin/contact", label: "Contact & Thanks", icon: "✉" },
-        ],
-    },
-    {
-        title: "Site-wide",
-        links: [
-            { to: "/admin/identity", label: "Identity & contact", icon: "❖" },
-            { to: "/admin/navigation", label: "Menus & footer", icon: "☰" },
-            { to: "/admin/media", label: "Media library", icon: "▤" },
-        ],
+        title: "Images",
+        links: [{ label: "Site images", icon: "▣", children: IMAGE_PAGES }],
     },
     {
         title: "Incoming",
@@ -103,25 +96,11 @@ const AdminLayout = () => {
                                 </p>
                                 <ul className="flex flex-col gap-0.5">
                                     {group.links.map((link) => (
-                                        <li key={link.to}>
-                                            <NavLink
-                                                to={link.to}
-                                                end={link.end}
-                                                onClick={() => setSidebarOpen(false)}
-                                                className={({ isActive }) =>
-                                                    `flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors ${
-                                                        isActive
-                                                            ? "bg-white/15 font-semibold text-white"
-                                                            : "text-white/70 hover:bg-white/8 hover:text-white"
-                                                    }`
-                                                }
-                                            >
-                                                <span aria-hidden="true" className="w-4 text-center text-[#F4C41C]">
-                                                    {link.icon}
-                                                </span>
-                                                {link.label}
-                                            </NavLink>
-                                        </li>
+                                        <NavItem
+                                            key={link.to ?? link.label}
+                                            link={link}
+                                            onNavigate={() => setSidebarOpen(false)}
+                                        />
                                     ))}
                                 </ul>
                             </div>
@@ -190,6 +169,89 @@ const AdminLayout = () => {
                 </div>
             </div>
         </ToastProvider>
+    )
+}
+
+const itemClass = (isActive) =>
+    `flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors ${
+        isActive
+            ? "bg-white/15 font-semibold text-white"
+            : "text-white/70 hover:bg-white/8 hover:text-white"
+    }`
+
+// A sidebar entry: either a plain link, or -- for "Site images" -- a button that
+// drops its pages down underneath it. The menu opens itself whenever one of those
+// pages is the one on screen, so a reload never hides where you are.
+function NavItem({ link, onNavigate }) {
+    const location = useLocation()
+    const isSectionOpen = (link.children ?? []).some(
+        (child) => location.pathname === child.to || location.pathname.startsWith(`${child.to}/`),
+    )
+    // Open by default whenever one of its pages is on screen; clicking the entry
+    // overrides that, so the menu can be collapsed out of the way and reopened.
+    const [override, setOverride] = useState(null)
+    const isOpen = override ?? isSectionOpen
+
+    if (!link.children) {
+        return (
+            <li>
+                <NavLink
+                    to={link.to}
+                    end={link.end}
+                    onClick={onNavigate}
+                    className={({ isActive }) => itemClass(isActive)}
+                >
+                    <span aria-hidden="true" className="w-4 text-center text-[#F4C41C]">
+                        {link.icon}
+                    </span>
+                    {link.label}
+                </NavLink>
+            </li>
+        )
+    }
+
+    return (
+        <li>
+            <button
+                type="button"
+                className={`w-full ${itemClass(isSectionOpen)}`}
+                aria-expanded={isOpen}
+                onClick={() => setOverride(!isOpen)}
+            >
+                <span aria-hidden="true" className="w-4 text-center text-[#F4C41C]">
+                    {link.icon}
+                </span>
+                {link.label}
+                <span
+                    aria-hidden="true"
+                    className={`ml-auto text-[10px] transition-transform ${isOpen ? "rotate-180" : ""}`}
+                >
+                    ▾
+                </span>
+            </button>
+
+            {isOpen && (
+                <ul className="ml-5 mb-1 mt-0.5 flex flex-col gap-0.5 border-l border-white/10 pl-3">
+                    {link.children.map((child) => (
+                        <li key={child.to}>
+                            <NavLink
+                                to={child.to}
+                                onClick={onNavigate}
+                                className={({ isActive }) =>
+                                    `block rounded-lg px-3 py-1.5 text-[13px] transition-colors ${
+                                        isActive
+                                            ? "bg-white/15 font-semibold text-white"
+                                            : "text-white/60 hover:bg-white/8 hover:text-white"
+                                    }`
+                                }
+                            >
+                                {child.label}
+                            </NavLink>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </li>
     )
 }
 

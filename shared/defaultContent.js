@@ -498,8 +498,7 @@ export const defaultContent = {
                 items: [
                     { id: "nv-p1", label: "Company Overview", path: "/visi-misi" },
                     { id: "nv-p2", label: "Awards & Certification", path: "/award" },
-                    { id: "nv-p3", label: "Board of Directors", path: "/board" },
-                    { id: "nv-p4", label: "Gallery", path: "/gallery" },
+                    { id: "nv-p3", label: "Board of Directors", path: "/board" }
                 ],
             },
             {
@@ -547,8 +546,7 @@ export const defaultContent = {
                 links: [
                     { id: "fl-p1", label: "Company Overview", path: "/visi-misi" },
                     { id: "fl-p2", label: "Awards & Certification", path: "/award" },
-                    { id: "fl-p3", label: "Board of Directors", path: "/board" },
-                    { id: "fl-p4", label: "Gallery", path: "/gallery" },
+                    { id: "fl-p3", label: "Board of Directors", path: "/board" }
                 ],
             },
             {

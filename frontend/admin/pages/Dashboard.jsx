@@ -6,11 +6,8 @@ import { useToast } from "../lib/toast"
 import { PageHeader } from "../components/Page"
 
 const SHORTCUTS = [
-    { to: "/admin/home", label: "Home page", hint: "Hero, intro, award block" },
-    { to: "/admin/careers", label: "Job openings", hint: "Add or close a vacancy" },
-    { to: "/admin/news", label: "News", hint: "Write and publish an article" },
-    { to: "/admin/gallery", label: "Gallery", hint: "Swap the photo mosaic" },
-    { to: "/admin/media", label: "Media library", hint: "Upload and manage images" },
+    { to: "/admin/images", label: "Site images", hint: "Swap any picture, page by page" },
+    { to: "/admin/gallery", label: "Gallery", hint: "Add, reorder or delete tiles" },
     { to: "/admin/inbox", label: "Inbox", hint: "Read contact submissions" },
 ]
 
@@ -67,7 +64,7 @@ const Dashboard = () => {
         <>
             <PageHeader
                 title="Welcome back"
-                description={`You are editing ${content.site?.companyName}. Content last saved: ${updatedAt}.`}
+                description={`${content.site?.companyName}. Images last saved: ${updatedAt}.`}
                 previewPath="/"
             />
 
@@ -79,7 +76,11 @@ const Dashboard = () => {
                 />
                 <Stat label="Contact messages" value={stats?.totals.contacts ?? "—"} sub="From both forms" />
                 <Stat label="Images uploaded" value={stats?.totals.mediaFiles ?? "—"} sub="In the media library" />
-                <Stat label="Open positions" value={stats?.totals.jobs ?? "—"} sub="Shown on /grow-with" />
+                <Stat
+                    label="Gallery images"
+                    value={stats?.totals.galleryImages ?? "—"}
+                    sub="Across both gallery pages"
+                />
             </div>
 
             <div className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
