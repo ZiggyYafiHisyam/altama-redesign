@@ -1,4 +1,12 @@
-# PT Altama Surya Anugerah — website
+# PT Altama Surya Anugerah — redesign website by Zeke
+
+REKAP PROGRESS:
+1) Home dan routing semua halaman udah di sesuaikan ama web asli altama terbaru
+2) Admin page buat CRUD method gambar" dan beberapa teks tersedia di route /admin nya
+3) FE dan BE masih full deploy di vercel, belum letakin BE dan DB di railway (nunggu arahan dan revisi bang daffa dulu)
+4) Input data dari home page udah bisa dsn bakal muncul di inbox admin page
+
+--------------------------------------------
 
 A Vite/React single-page site with an Express API and a built-in admin panel for
 swapping the site's images. The copy is fixed content in
