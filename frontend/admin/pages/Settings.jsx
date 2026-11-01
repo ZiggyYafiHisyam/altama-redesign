@@ -155,11 +155,11 @@ const Settings = () => {
 
                 <Card title="Where this is stored">
                     <p className="font-inter text-sm leading-relaxed text-slate-600">
-                        Content, uploaded images, contact messages and the page-view log are JSON files on the
-                        server. On Vercel they are written to <code className="rounded bg-slate-100 px-1">/tmp</code>,
-                        which is wiped whenever the serverless instance is recycled — so treat anything saved
-                        there as temporary and keep a backup. Set <code className="rounded bg-slate-100 px-1">DATA_DIR</code>{" "}
-                        to a persistent volume for a permanent store.
+                        Content, uploaded images, contact messages and the page-view log are saved in the
+                        Postgres database (Neon) named by <code className="rounded bg-slate-100 px-1">DATABASE_URL</code>.
+                        Without one, they fall back to JSON files on the server — which on Vercel live in{" "}
+                        <code className="rounded bg-slate-100 px-1">/tmp</code> and are wiped whenever the serverless
+                        instance is recycled, so keep a backup if the database is not connected.
                     </p>
                 </Card>
             </div>

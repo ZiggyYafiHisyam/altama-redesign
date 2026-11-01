@@ -1,7 +1,7 @@
 # Deploying: everything on Vercel
 
 The Vite/React frontend and the Express API deploy together as a single Vercel
-project. No environment variables are required.
+project, with a Neon Postgres database for everything the site saves.
 
 - The frontend builds from the repo root to `dist/`.
 - `api/index.js` wraps the Express app in `backend/src/app.js` as a serverless
@@ -33,25 +33,32 @@ credentials default to `admin` / `123`. **Set `ADMIN_USERNAME` and
 `ADMIN_PASSWORD` in Vercel before the deployment is public**, or anyone who
 finds `/admin/login` can rewrite the site.
 
-## Data storage is temporary
+## Connect the database (Neon)
 
-Site content, uploaded images, contacts and page views are written to JSON
-files. On Vercel the deployment filesystem is read-only, so the stores write to
-`/tmp` instead (see
-[backend/src/services/dataDir.js](backend/src/services/dataDir.js)).
+Site content, uploaded images, contact messages and page views are saved in
+Postgres on Neon.
 
-**`/tmp` is per-instance and ephemeral.** Entries vanish when the serverless
-instance is recycled, and two instances running at once do not see each other's
-data. Treat it as a scratch cache: good enough to prove the flow works, not
-somewhere to keep real contact-form submissions — or the real site's content.
-When content disappears the site falls back to the defaults bundled in
-`shared/defaultContent.js`, so pages stay complete rather than going blank, but
-the edits are gone.
+1. Vercel → your project → **Storage** → **Create Database** → **Neon**, free
+   plan, region **Singapore (`aws-ap-southeast-1`)**. Connect it to the project.
+   The integration sets `DATABASE_URL` for you.
+2. Redeploy, so the function picks up the new variable.
+3. That's it: the tables are created on the first request (see
+   [backend/src/services/db.js](backend/src/services/db.js)).
 
-The fix is either a persistent `DATA_DIR` (below) or moving the stores to a
-hosted database (e.g. Postgres via `DATABASE_URL`) — only the files in
-`backend/src/services/` would change. Until then, take a backup from the admin's
-Settings page after any substantial editing session.
+`vercel.json` pins the API function to Vercel's Singapore region (`sin1`) so it
+sits next to the database; every query would otherwise cross an ocean. If you
+create the database somewhere else, change `regions` to match.
+
+**Without `DATABASE_URL`** the stores fall back to JSON files, which on Vercel
+live in `/tmp` (see [backend/src/services/dataDir.js](backend/src/services/dataDir.js)).
+`/tmp` is per-instance and ephemeral: entries vanish when the instance is
+recycled, and two instances don't see each other's data. The site still renders
+— it falls back to `shared/defaultContent.js` — but edits and contact messages
+are lost. Fine for local dev, not for the live site.
+
+Moving existing edits: anything saved before the database was connected lived in
+`/tmp` and can't be carried over, apart from content you exported with the
+admin's **Settings → Download backup**, which you can restore from the same page.
 
 ## Optional environment variables
 
@@ -68,7 +75,10 @@ Set these in Vercel → Settings → Environment Variables. All are optional.
 - `CORS_ORIGIN` — comma-separated allowed origins. Unset on Vercel, the API
   reflects the requesting origin, which already covers the production domain and
   preview URLs.
-- `DATA_DIR` — override where the JSON files are written. Only useful on a host
+- `DATABASE_URL` — the Postgres connection string. Set by the Neon integration;
+  without it, data is only kept temporarily (see above).
+- `DATA_DIR` — override where the JSON files are written when there is no
+  database. Only useful on a host
   with a persistent disk; on Vercel it must stay under `/tmp`. This is the one
   variable that makes admin edits survive.
 

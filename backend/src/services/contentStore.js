@@ -2,6 +2,7 @@ import fs from "node:fs"
 import path from "node:path"
 import { randomUUID } from "node:crypto"
 import { DATA_DIR } from "./dataDir.js"
+import { query, usingDatabase } from "./db.js"
 import {
     CONTENT_COLLECTIONS,
     CONTENT_SECTIONS,
@@ -40,7 +41,13 @@ function withDefaults(stored, fallback = defaultContent) {
     return merged
 }
 
-function readRaw() {
+async function readRaw() {
+    if (usingDatabase) {
+        const { rows } = await query("SELECT document FROM site_content WHERE id = 1")
+        // No row yet means a fresh database -- same fallback as a missing file.
+        return rows[0]?.document ?? null
+    }
+
     try {
         return JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"))
     } catch {
@@ -50,35 +57,44 @@ function readRaw() {
     }
 }
 
-function writeRaw(document) {
+async function writeRaw(document) {
+    if (usingDatabase) {
+        await query(
+            `INSERT INTO site_content (id, document, updated_at) VALUES (1, $1, now())
+             ON CONFLICT (id) DO UPDATE SET document = EXCLUDED.document, updated_at = now()`,
+            [JSON.stringify(document)],
+        )
+        return
+    }
+
     fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true })
     fs.writeFileSync(DATA_FILE, JSON.stringify(document, null, 2), "utf-8")
 }
 
-export function getContent() {
-    const content = withDefaults(readRaw())
+export async function getContent() {
+    const content = withDefaults(await readRaw())
     content.version = CONTENT_VERSION
     return content
 }
 
-function save(content) {
+async function save(content) {
     const next = {
         ...content,
         version: CONTENT_VERSION,
         updatedAt: new Date().toISOString(),
     }
-    writeRaw(next)
+    await writeRaw(next)
     return next
 }
 
-export function replaceContent(incoming) {
+export async function replaceContent(incoming) {
     if (!isPlainObject(incoming)) {
         throw httpError(400, "Content must be an object.")
     }
     return save(withDefaults(incoming))
 }
 
-export function updateSection(section, value) {
+export async function updateSection(section, value) {
     if (!CONTENT_SECTIONS.includes(section)) {
         throw httpError(404, `Unknown content section: ${section}`)
     }
@@ -86,20 +102,20 @@ export function updateSection(section, value) {
         throw httpError(400, "Section value must be an object.")
     }
 
-    const content = getContent()
+    const content = await getContent()
     // Merged rather than replaced so a form that only posts the fields it owns
     // cannot wipe the rest of its section.
     content[section] = withDefaults(value, content[section])
     return save(content)
 }
 
-export function resetContent(section) {
+export async function resetContent(section) {
     if (!section) return save(clone(defaultContent))
 
     if (!CONTENT_SECTIONS.includes(section)) {
         throw httpError(404, `Unknown content section: ${section}`)
     }
-    const content = getContent()
+    const content = await getContent()
     content[section] = clone(defaultContent[section])
     return save(content)
 }
@@ -136,12 +152,12 @@ function resolveCollection(content, collectionPath) {
     return { definition, parent, key, items: parent[key] }
 }
 
-export function listItems(collectionPath) {
-    return resolveCollection(getContent(), collectionPath).items
+export async function listItems(collectionPath) {
+    return resolveCollection(await getContent(), collectionPath).items
 }
 
-export function createItem(collectionPath, body) {
-    const content = getContent()
+export async function createItem(collectionPath, body) {
+    const content = await getContent()
     const { definition, items } = resolveCollection(content, collectionPath)
 
     const item = {
@@ -152,12 +168,12 @@ export function createItem(collectionPath, body) {
         id: `${collectionPath.split(".").pop()}-${randomUUID().slice(0, 8)}`,
     }
     items.push(item)
-    save(content)
+    await save(content)
     return item
 }
 
-export function updateItem(collectionPath, id, body) {
-    const content = getContent()
+export async function updateItem(collectionPath, id, body) {
+    const content = await getContent()
     const { definition, items } = resolveCollection(content, collectionPath)
 
     const index = items.findIndex((item) => item.id === id)
@@ -166,12 +182,12 @@ export function updateItem(collectionPath, id, body) {
     }
 
     items[index] = { ...items[index], ...(isPlainObject(body) ? body : {}), id }
-    save(content)
+    await save(content)
     return items[index]
 }
 
-export function deleteItem(collectionPath, id) {
-    const content = getContent()
+export async function deleteItem(collectionPath, id) {
+    const content = await getContent()
     const { definition, items } = resolveCollection(content, collectionPath)
 
     const index = items.findIndex((item) => item.id === id)
@@ -180,18 +196,18 @@ export function deleteItem(collectionPath, id) {
     }
 
     const [removed] = items.splice(index, 1)
-    save(content)
+    await save(content)
     return removed
 }
 
 // Reordering is its own operation because the order of a list is content too
 // (which milestone comes first, which gallery tile sits where).
-export function reorderItems(collectionPath, orderedIds) {
+export async function reorderItems(collectionPath, orderedIds) {
     if (!Array.isArray(orderedIds)) {
         throw httpError(400, "`ids` must be an array of item ids.")
     }
 
-    const content = getContent()
+    const content = await getContent()
     const { parent, key, items } = resolveCollection(content, collectionPath)
 
     const byId = new Map(items.map((item) => [item.id, item]))
@@ -206,7 +222,7 @@ export function reorderItems(collectionPath, orderedIds) {
     // stale client cannot silently drop items.
     parent[key] = [...reordered, ...byId.values()]
 
-    save(content)
+    await save(content)
     return parent[key]
 }
 

@@ -17,8 +17,10 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "@vercel/functions": "^3.10.5",
     "cors": "^2.8.5",
     "express": "^4.21.2",
+    "pg": "^8.23.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.4",

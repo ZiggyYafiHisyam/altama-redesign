@@ -36,23 +36,23 @@ function describeClient(userAgent) {
     return { device, browser }
 }
 
-export function createPageView(req, res) {
+export async function createPageView(req, res) {
     const entry = {
         id: randomUUID(),
         ...req.body,
         ...describeClient(req.get("user-agent")),
         openedAt: new Date().toISOString(),
     }
-    addPageView(entry)
+    await addPageView(entry)
     console.log(`[page-view] ${entry.path}${entry.referrer ? ` (from ${entry.referrer})` : ""}`)
     res.status(201).json({ success: true, data: entry })
 }
 
-export function getPageViews(_req, res) {
-    res.status(200).json({ success: true, data: listPageViews() })
+export async function getPageViews(_req, res) {
+    res.status(200).json({ success: true, data: await listPageViews() })
 }
 
-export function resetPageViews(_req, res) {
-    clearPageViews()
+export async function resetPageViews(_req, res) {
+    await clearPageViews()
     res.status(200).json({ success: true, data: [] })
 }
