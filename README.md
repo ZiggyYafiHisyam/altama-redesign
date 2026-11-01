@@ -3,7 +3,7 @@
 REKAP PROGRESS:
 1) Home dan routing semua halaman udah di sesuaikan ama web asli altama terbaru
 2) Admin page buat CRUD method gambar" dan beberapa teks tersedia di route /admin nya
-3) FE dan BE masih full deploy di vercel, belum letakin BE dan DB di railway (nunggu arahan dan revisi bang daffa dulu)
+3) FE BE di vercel, db nya neon db udah connect dan idle (insyaallah bang)
 4) Input data dari home page udah bisa dsn bakal muncul di inbox admin page
 
 --------------------------------------------
