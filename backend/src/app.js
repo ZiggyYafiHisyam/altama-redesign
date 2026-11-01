@@ -5,6 +5,7 @@ import contactRoutes from "./routes/contact.routes.js"
 import contentRoutes from "./routes/content.routes.js"
 import pageViewRoutes from "./routes/pageView.routes.js"
 import { serveMedia } from "./controllers/admin.controller.js"
+import { describeStorage } from "./services/db.js"
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js"
 import { requestLogger } from "./middleware/requestLogger.js"
 import { asyncRoute } from "./middleware/asyncRoute.js"
@@ -32,9 +33,13 @@ app.use(cors({ origin: allowedOrigins }))
 // too small. Kept comfortably above mediaStore's 3MB per-image cap.
 app.use(express.json({ limit: "12mb" }))
 
-app.get("/api/health", (_req, res) => {
-    res.status(200).json({ success: true, status: "ok" })
-})
+// `storage` says where the site's data is being saved: "postgres" (the Neon
+// database) or "files" (the temporary fallback, which loses data on Vercel).
+app.get("/api/health", asyncRoute(async (_req, res) => {
+    const storage = await describeStorage()
+    const healthy = storage.storage === "files" || storage.database.connected
+    res.status(healthy ? 200 : 503).json({ success: healthy, status: healthy ? "ok" : "database unreachable", ...storage })
+}))
 
 app.use("/api/contact", contactRoutes)
 app.use("/api/page-views", pageViewRoutes)
