@@ -32,7 +32,7 @@ npm run dev        # frontend on :5173, API on :4000
 | `frontend/admin/` | The admin panel: layout, the image editors, form controls. |
 | `frontend/lib/` | The API client, the content provider, image resolution, text helpers. |
 | `shared/defaultContent.js` | The site's content, and the shape of it. Imported by both halves. |
-| `backend/src/` | The Express API: routes, controllers, JSON-file stores. |
+| `backend/src/` | The Express API: routes, controllers, stores (Postgres via `DATABASE_URL`, JSON files without it). |
 | `api/index.js` | The Vercel serverless wrapper around the same Express app. |
 
 ## Documentation

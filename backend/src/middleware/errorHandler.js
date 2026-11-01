@@ -4,5 +4,10 @@ export function notFoundHandler(req, res) {
 
 export function errorHandler(err, _req, res, _next) {
     console.error(err)
-    res.status(err.status || 500).json({ success: false, error: err.message || "Internal server error" })
+    // A store's own errors (400s, 404s) are written for the client. Anything else
+    // -- a database outage, a bug -- can carry internals such as the database
+    // host, so it stays in the log.
+    const status = err.status || 500
+    const message = status < 500 && err.message ? err.message : "Internal server error"
+    res.status(status).json({ success: false, error: message })
 }

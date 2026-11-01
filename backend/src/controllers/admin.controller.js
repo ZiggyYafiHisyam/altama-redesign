@@ -30,32 +30,32 @@ export function me(req, res) {
     res.status(200).json({ success: true, data: { user: { username: req.admin.username } } })
 }
 
-export function getMediaLibrary(_req, res) {
-    res.status(200).json({ success: true, data: listMedia() })
+export async function getMediaLibrary(_req, res) {
+    res.status(200).json({ success: true, data: await listMedia() })
 }
 
-export function uploadMedia(req, res) {
+export async function uploadMedia(req, res) {
     const { name, dataUrl } = req.body ?? {}
-    res.status(201).json({ success: true, data: addMedia({ name, dataUrl }) })
+    res.status(201).json({ success: true, data: await addMedia({ name, dataUrl }) })
 }
 
-export function patchMedia(req, res) {
-    res.status(200).json({ success: true, data: renameMedia(req.params.id, req.body?.name) })
+export async function patchMedia(req, res) {
+    res.status(200).json({ success: true, data: await renameMedia(req.params.id, req.body?.name) })
 }
 
-export function removeMedia(req, res) {
-    res.status(200).json({ success: true, data: deleteMedia(req.params.id) })
+export async function removeMedia(req, res) {
+    res.status(200).json({ success: true, data: await deleteMedia(req.params.id) })
 }
 
 // Public: the <img> tags on the live site point here. Cached hard because the id
 // changes whenever the image does.
-export function serveMedia(req, res) {
-    const entry = getMedia(req.params.id)
+export async function serveMedia(req, res) {
+    const entry = await getMedia(req.params.id)
     if (!entry) {
         return res.status(404).json({ success: false, error: "Image not found." })
     }
 
-    const bytes = Buffer.from(entry.base64, "base64")
+    const { bytes } = entry
     res.setHeader("Content-Type", entry.mimeType)
     res.setHeader("Content-Length", bytes.length)
     res.setHeader("Cache-Control", "public, max-age=31536000, immutable")
@@ -63,10 +63,13 @@ export function serveMedia(req, res) {
 }
 
 // Everything the dashboard's overview needs, in one request.
-export function getStats(_req, res) {
-    const content = getContent()
-    const views = listPageViews()
-    const contacts = listContacts()
+export async function getStats(_req, res) {
+    const [content, views, contacts, media] = await Promise.all([
+        getContent(),
+        listPageViews(),
+        listContacts(),
+        listMedia(),
+    ])
 
     const since = Date.now() - 7 * 24 * 60 * 60 * 1000
     const recentViews = views.filter((view) => Date.parse(view.openedAt) >= since)
@@ -101,7 +104,7 @@ export function getStats(_req, res) {
                 pageViews: views.length,
                 pageViewsLast7Days: recentViews.length,
                 contacts: contacts.length,
-                mediaFiles: listMedia().length,
+                mediaFiles: media.length,
                 jobs: content.careers?.jobs?.length ?? 0,
                 articles: content.news?.articles?.length ?? 0,
                 brands: content.brands?.items?.length ?? 0,

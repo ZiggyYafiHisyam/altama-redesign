@@ -48,9 +48,8 @@ An image is stored as a string, in one of three forms:
 
 Every image in the admin can be uploaded, dropped onto its preview, picked from
 the library, reused from the shipped assets or pasted in as a URL, and clearing it
-puts the page back to its placeholder. Uploads are capped at 3 MB and held as base64 in `media.json`,
-because `/tmp` is the only writable path on Vercel and a separate file tree there
-would buy nothing.
+puts the page back to its placeholder. Uploads are capped at 3 MB and stored in
+the database's `media` table (or, without a database, as base64 in `media.json`).
 
 ## What is editable where
 
@@ -173,22 +172,19 @@ store.
 
 ## Where the data lives, and the catch
 
-`content.json`, `media.json`, `contacts.json` and `pageViews.json` are written
-to `DATA_DIR` — `backend/data` locally, `/tmp/altama-data` on Vercel.
+**With `DATABASE_URL` set** (the Vercel Neon integration sets it), everything is
+saved in Postgres: the content document in `site_content`, and `contacts`,
+`page_views` and `media` tables. The tables are created on the first request, so a
+new database needs no setup. See [`backend/src/services/db.js`](backend/src/services/db.js).
 
-**On Vercel that is temporary.** `/tmp` is per-instance and is wiped when the
-instance is recycled, so edits and uploads can disappear and two instances do
-not see each other's writes. It is enough to demonstrate the whole flow; it is
-not somewhere to keep the real site's content. Two ways out:
+**Without it**, the stores fall back to `content.json`, `media.json`,
+`contacts.json` and `pageViews.json` in `DATA_DIR` — `backend/data` locally,
+`/tmp/altama-data` on Vercel. That is how `npm run dev` works with no database.
+On Vercel the fallback is temporary: `/tmp` is per-instance and is wiped when
+the instance is recycled, so edits and uploads can disappear.
 
-- Point `DATA_DIR` at a mounted volume on a host with a persistent disk (see the
-  Railway notes in [DEPLOYMENT.md](DEPLOYMENT.md)).
-- Move the stores to a hosted database — only the files in
-  `backend/src/services/` would change.
-
-Until then, use **Settings → Download backup** after a substantial editing
-session. The backup holds the text and the image references, not the uploaded
-image files.
+**Settings → Download backup** holds the text and the image references, not the
+uploaded image files.
 
 ## Making another image editable
 

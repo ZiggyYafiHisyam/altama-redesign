@@ -2,13 +2,15 @@ import fs from "node:fs"
 import path from "node:path"
 import { randomUUID } from "node:crypto"
 import { DATA_DIR } from "./dataDir.js"
+import { query, usingDatabase } from "./db.js"
 
 const DATA_FILE = path.join(DATA_DIR, "media.json")
 
-// Uploaded images live inside the JSON store as base64 rather than as files on
-// disk, because the only writable path on Vercel is /tmp and a separate file
-// tree there buys nothing over one document. Keep the per-image cap modest: the
-// whole library is read and rewritten on every upload.
+// Uploaded images live in Postgres as bytea when DATABASE_URL is set, and
+// otherwise inside the JSON file as base64 (the only writable path on Vercel is
+// /tmp, so a separate file tree there buys nothing over one document). Keep the
+// per-image cap modest: without a database the whole library is read and
+// rewritten on every upload.
 export const MAX_IMAGE_BYTES = 3 * 1024 * 1024
 
 const ALLOWED_TYPES = new Set([
@@ -53,19 +55,44 @@ function toMetadata(entry) {
     }
 }
 
-export function listMedia() {
+const METADATA_COLUMNS = "id, name, mime_type, size, created_at"
+
+function fromRow(row) {
+    return {
+        id: row.id,
+        name: row.name,
+        mimeType: row.mime_type,
+        size: row.size,
+        createdAt: row.created_at.toISOString(),
+    }
+}
+
+export async function listMedia() {
+    if (usingDatabase) {
+        const { rows } = await query(`SELECT ${METADATA_COLUMNS} FROM media ORDER BY created_at DESC, id`)
+        return rows.map((row) => toMetadata(fromRow(row)))
+    }
+
     return readAll()
         .map(toMetadata)
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 }
 
-export function getMedia(id) {
-    return readAll().find((entry) => entry.id === id) ?? null
+// The one read that needs the bytes: serving the image. Returns them as a
+// Buffer in `bytes`, whichever store they came from.
+export async function getMedia(id) {
+    if (usingDatabase) {
+        const { rows } = await query(`SELECT ${METADATA_COLUMNS}, data FROM media WHERE id = $1`, [id])
+        return rows[0] ? { ...fromRow(rows[0]), bytes: rows[0].data } : null
+    }
+
+    const entry = readAll().find((item) => item.id === id)
+    return entry ? { ...entry, bytes: Buffer.from(entry.base64, "base64") } : null
 }
 
 // `dataUrl` is what a browser's FileReader.readAsDataURL produces, which is the
 // simplest thing for the admin to send over plain JSON.
-export function addMedia({ name, dataUrl }) {
+export async function addMedia({ name, dataUrl }) {
     const match = /^data:([^;,]+);base64,(.+)$/s.exec(String(dataUrl ?? ""))
     if (!match) {
         throw httpError(400, "Expected a base64 data URL, e.g. data:image/png;base64,...")
@@ -87,17 +114,34 @@ export function addMedia({ name, dataUrl }) {
         name: String(name ?? "untitled").slice(0, 120),
         mimeType,
         size: bytes.length,
-        base64,
         createdAt: new Date().toISOString(),
     }
 
+    if (usingDatabase) {
+        await query(
+            "INSERT INTO media (id, name, mime_type, size, data, created_at) VALUES ($1, $2, $3, $4, $5, $6)",
+            [entry.id, entry.name, entry.mimeType, entry.size, bytes, entry.createdAt],
+        )
+        return toMetadata(entry)
+    }
+
+    entry.base64 = base64
     const entries = readAll()
     entries.push(entry)
     writeAll(entries)
     return toMetadata(entry)
 }
 
-export function renameMedia(id, name) {
+export async function renameMedia(id, name) {
+    if (usingDatabase) {
+        const { rows } = await query(
+            `UPDATE media SET name = COALESCE(NULLIF($2, ''), name) WHERE id = $1 RETURNING ${METADATA_COLUMNS}`,
+            [id, String(name ?? "").slice(0, 120)],
+        )
+        if (!rows[0]) throw httpError(404, `Image not found: ${id}`)
+        return toMetadata(fromRow(rows[0]))
+    }
+
     const entries = readAll()
     const entry = entries.find((item) => item.id === id)
     if (!entry) throw httpError(404, `Image not found: ${id}`)
@@ -107,7 +151,13 @@ export function renameMedia(id, name) {
     return toMetadata(entry)
 }
 
-export function deleteMedia(id) {
+export async function deleteMedia(id) {
+    if (usingDatabase) {
+        const { rows } = await query(`DELETE FROM media WHERE id = $1 RETURNING ${METADATA_COLUMNS}`, [id])
+        if (!rows[0]) throw httpError(404, `Image not found: ${id}`)
+        return toMetadata(fromRow(rows[0]))
+    }
+
     const entries = readAll()
     const index = entries.findIndex((entry) => entry.id === id)
     if (index === -1) throw httpError(404, `Image not found: ${id}`)

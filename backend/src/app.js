@@ -7,6 +7,7 @@ import pageViewRoutes from "./routes/pageView.routes.js"
 import { serveMedia } from "./controllers/admin.controller.js"
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js"
 import { requestLogger } from "./middleware/requestLogger.js"
+import { asyncRoute } from "./middleware/asyncRoute.js"
 
 const configuredOrigins = (process.env.CORS_ORIGIN ?? "")
     .split(",")
@@ -41,7 +42,7 @@ app.use("/api/content", contentRoutes)
 app.use("/api/admin", adminRoutes)
 // Public, and deliberately outside /api/admin: these URLs are what the live
 // site's <img> tags point at.
-app.get("/api/media/:id", serveMedia)
+app.get("/api/media/:id", asyncRoute(serveMedia))
 
 app.use(notFoundHandler)
 app.use(errorHandler)
