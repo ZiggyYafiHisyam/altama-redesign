@@ -23,8 +23,11 @@ project, with a Neon Postgres database for everything the site saves.
    build settings alone.
 4. Deploy.
 
-Verify with `https://<your-app>.vercel.app/api/health`, which should return
-`{"success":true,"status":"ok"}`.
+Verify with `https://<your-app>.vercel.app/api/health`. With the database
+connected it returns `"storage":"postgres"` and `"connected":true`, plus the start
+of the endpoint name (`ep-steep-tooth…`) so you can tell which database it is.
+`"storage":"files"` means `DATABASE_URL` isn't reaching the deployment and data
+is only being kept temporarily; a 503 means the database didn't answer.
 
 ## Set the admin password
 

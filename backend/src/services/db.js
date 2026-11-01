@@ -73,3 +73,30 @@ export async function query(text, params) {
     await ensureSchema()
     return pool.query(text, params)
 }
+
+// For /api/health: which store is in use and, with a database, whether it
+// answers. Names the endpoint only by a short prefix -- enough to tell this
+// database apart from another one, without publishing its full host.
+export async function describeStorage() {
+    if (!usingDatabase) return { storage: "files", database: null }
+
+    let host = ""
+    try {
+        host = new URL(DATABASE_URL).hostname
+    } catch {
+        // Unparseable URL: the connection attempt below reports the real problem.
+    }
+    const endpoint = host.split(".")[0] ?? ""
+    const database = {
+        endpoint: endpoint ? `${endpoint.replace(/-pooler$/, "").slice(0, 14)}…` : "unknown",
+        pooled: endpoint.endsWith("-pooler"),
+    }
+
+    try {
+        await query("SELECT 1")
+        return { storage: "postgres", database: { ...database, connected: true } }
+    } catch (error) {
+        console.error("[health] database check failed:", error)
+        return { storage: "postgres", database: { ...database, connected: false } }
+    }
+}
