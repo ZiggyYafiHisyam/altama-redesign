@@ -8,6 +8,41 @@ REKAP PROGRESS:
 
 --------------------------------------------
 
+## Revision summary (November 2026)
+
+**Result:** the live site now saves everything permanently to a Neon Postgres
+database. Verified on 2 November 2026: the Neon database and the admin panel
+showed the same counts (1 contact message, 15 page views, 0 uploads), and
+`/api/health` reported `"storage":"postgres"`, `"connected":true`.
+
+Before this revision, contact messages, admin edits, uploads and page views were
+written to temporary files on Vercel and were lost whenever the server restarted.
+
+### What changed
+
+| Change | Details |
+| --- | --- |
+| Database | Content, contact messages, page views and uploaded images are stored in Neon Postgres (`site_content`, `contacts`, `page_views`, `media`). Tables are created automatically on the first request. Code: `backend/src/services/`. |
+| Fallback | Without `DATABASE_URL` the API still uses JSON files, so `npm run dev` works without a database. |
+| Hosting | Frontend and API still deploy together on Vercel. The API function is pinned to Singapore (`sin1`), next to the database. |
+| Health check | `GET /api/health` shows where data is saved (`postgres` or `files`), whether the database answered, and the start of its endpoint name. |
+| Fixes | Server errors no longer reveal the database address; marking a message handled no longer erases its note. |
+| Tooling | `CLAUDE.md` (assistant instructions and project notes) and Neon agent skills in `.claude/skills/`. |
+
+### Vercel environment variables (all private)
+
+`DATABASE_URL` (the pooled Neon link), `ADMIN_USERNAME`, `ADMIN_PASSWORD`,
+`ADMIN_SESSION_SECRET`.
+
+### Still to do
+
+- Reset the Neon database password and storage keys (they were shared in chat), then update `DATABASE_URL` on Vercel.
+- Site fixes: hero text overlapping the brand logos, words joining on mobile, placeholder phone number and social links.
+- Compress the images (29 MB total) and load the admin panel separately.
+- Optional Neon services not wired in yet: image storage, admin accounts, live updates.
+
+--------------------------------------------
+
 A Vite/React single-page site with an Express API and a built-in admin panel for
 swapping the site's images. The copy is fixed content in
 `shared/defaultContent.js`; the pictures are editable at `/admin`.
